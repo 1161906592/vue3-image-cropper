@@ -1,0 +1,80 @@
+.wrapper {
+  position: relative;
+  display: inline-block;
+  height: 600px;
+  user-select: none;
+  > {
+    img,
+    canvas,
+    div {
+      position: absolute;
+    }
+    img,
+    canvas {
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+    }
+  }
+}
+
+.controls {
+  cursor: move;
+  border: 1px solid blue;
+}
+
+.control {
+  position: absolute;
+  width: 7px;
+  height: 7px;
+  background: blue;
+  &.n.c {
+    left: 50%;
+    transform: translateX(-50%);
+    top: -4px;
+  }
+  &.n.w {
+    left: -4px;
+    top: -4px;
+  }
+  &.e.c {
+    top: 50%;
+    transform: translateY(-50%);
+    right: -4px;
+  }
+  &.n.e {
+    right: -4px;
+    top: -4px;
+  }
+  &.s.c {
+    left: 50%;
+    transform: translateX(-50%);
+    bottom: -4px;
+  }
+  &.s.e {
+    right: -4px;
+    bottom: -4px;
+  }
+  &.w.c {
+    top: 50%;
+    transform: translateY(-50%);
+    left: -4px;
+  }
+  &.s.w {
+    left: -4px;
+    bottom: -4px;
+  }
+}
+
+.size {
+  position: absolute;
+  left: 0;
+  top: 0;
+  background: #0005;
+  font-size: 12px;
+  white-space: nowrap;
+  color: #fff;
+  padding: 0 4px 2px;
+  line-height: 18px;
+}
