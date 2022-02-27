@@ -24,11 +24,10 @@ const home = defineComponent({
         <input type="file" onChange={handleChange} />
         <Element
           src={srcRef.value}
-          width={400}
-          height={400}
+          length={400}
           previewContainer={() => document.getElementById('preivew') as HTMLDivElement}
         />
-        <div id="preivew" style={{ width: '50px', height: '50px' }} />
+        <div id="preivew" style={{ width: '50px', height: '50px', background: '#f2f4fa' }} />
       </>
     )
   },

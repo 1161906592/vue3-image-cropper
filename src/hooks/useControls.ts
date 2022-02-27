@@ -1,4 +1,4 @@
-import { computed, nextTick, onMounted, reactive, ref, StyleValue, watch } from 'vue'
+import { computed, nextTick, onMounted, reactive, ref, StyleValue, watch, watchEffect } from 'vue'
 import useDrag from './useDrag'
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'c'
@@ -15,27 +15,77 @@ interface Shape {
 }
 
 interface Props {
-  defaultShape: Shape
+  length: number
 }
 
 const min = 20
-const initPadding = 20
+const initPadding = 0
+
+export function scaleCompute(shape: Shape, length: number) {
+  if (shape.width > shape.height) {
+    const scale = length / shape.width
+    const height = ~~(shape.height * scale)
+    const y = (length - height) / 2
+    return {
+      x: 0,
+      y,
+      width: length,
+      height,
+      maxWdith: length,
+      maxHeight: y + height,
+      scale,
+    }
+  }
+  const scale = length / shape.height
+  const width = ~~(shape.width * scale)
+  const x = (length - width) / 2
+  return {
+    x,
+    y: 0,
+    width,
+    height: length,
+    maxWdith: x + width,
+    maxHeight: length,
+    scale,
+  }
+}
 
 function useControls(props: Props) {
-  const { defaultShape } = props
-  const shape = reactive({
-    x: initPadding,
-    y: initPadding,
-    width: defaultShape.width - 2 * initPadding,
-    height: defaultShape.height - 2 * initPadding,
+  const { length } = props
+  const imageRawShape = reactive<Shape>({
+    width: 0,
+    height: 0,
+  })
+  const controlShape = reactive({
+    x: 0,
+    y: 0,
+    width: 0,
+    height: 0,
   })
 
-  const style = computed<StyleValue>(() => {
+  const imageShapeRef = computed(() => scaleCompute(imageRawShape, length))
+
+  const imageStyleRef = computed(() => {
+    const imageShape = imageShapeRef.value
+    return { width: `${imageShape.width}px`, height: `${imageShape.height}px` }
+  })
+
+  const cropShapeRef = computed(() => {
+    const imageShape = imageShapeRef.value
     return {
-      transform: `translate(${shape.x}px, ${shape.y}px)`,
-      width: `${shape.width}px`,
-      height: `${shape.height}px`,
+      x: controlShape.x - imageShape.x,
+      y: controlShape.y - imageShape.y,
+      width: controlShape.width,
+      height: controlShape.height,
     }
+  })
+
+  watchEffect(() => {
+    const imageShape = imageShapeRef.value
+    controlShape.x = imageShape.x + initPadding
+    controlShape.y = imageShape.y + initPadding
+    controlShape.width = imageShape.width - initPadding * 2
+    controlShape.height = imageShape.height - initPadding * 2
   })
 
   const maskCanvasRef = ref<HTMLCanvasElement>()
@@ -46,12 +96,17 @@ function useControls(props: Props) {
     if (!ctx) {
       return
     }
-    ctx.clearRect(0, 0, defaultShape.width, defaultShape.height)
+    ctx.clearRect(0, 0, length, length)
     ctx.fillStyle = '#0005'
-    ctx.fillRect(0, 0, defaultShape.width, shape.y)
-    ctx.fillRect(0, shape.y, shape.x, shape.height)
-    ctx.fillRect(shape.x + shape.width, shape.y, defaultShape.width - shape.x - shape.width, shape.height)
-    ctx.fillRect(0, shape.y + shape.height, defaultShape.width, defaultShape.height - shape.y - shape.height)
+    ctx.fillRect(0, 0, length, controlShape.y)
+    ctx.fillRect(0, controlShape.y, controlShape.x, controlShape.height)
+    ctx.fillRect(
+      controlShape.x + controlShape.width,
+      controlShape.y,
+      length - controlShape.x - controlShape.width,
+      controlShape.height
+    )
+    ctx.fillRect(0, controlShape.y + controlShape.height, length, length - controlShape.y - controlShape.height)
   }
 
   watch(
@@ -60,24 +115,25 @@ function useControls(props: Props) {
       if (!canvas) {
         return
       }
-      canvas.width = defaultShape.width
-      canvas.height = defaultShape.height
+      canvas.width = length
+      canvas.height = length
       maskContextRef.value = canvas.getContext('2d')
       nextTick(renderMask)
     },
     { immediate: true }
   )
 
-  watch(shape, renderMask)
+  watch(controlShape, renderMask)
 
   const onContainerDrag = useDrag(
     ({ x, y }) => {
-      const { x: shapeX, y: shapeY } = shape
+      const { x: shapeX, y: shapeY } = controlShape
+      const imageShape = imageShapeRef.value
 
-      shape.x = Math.min(Math.max(shape.x + x, 0), defaultShape.width - shape.width)
-      shape.y = Math.min(Math.max(shape.y + y, 0), defaultShape.height - shape.height)
+      controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), imageShape.maxWdith - controlShape.width)
+      controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), imageShape.maxHeight - controlShape.height)
 
-      return { x: shape.x - shapeX, y: shape.y - shapeY }
+      return { x: controlShape.x - shapeX, y: controlShape.y - shapeY }
     },
     {
       cursor: 'move',
@@ -89,16 +145,17 @@ function useControls(props: Props) {
       directions: ['n', 'w'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { x: shapeX, y: shapeY, width: shapeWidth, height: shapeHeight } = shape
+          const { x: shapeX, y: shapeY, width: shapeWidth, height: shapeHeight } = controlShape
+          const imageShape = imageShapeRef.value
 
-          shape.x = Math.min(Math.max(shape.x + x, 0), shapeX + shapeWidth - min)
-          shape.y = Math.min(Math.max(shape.y + y, 0), shapeY + shapeHeight - min)
+          controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), shapeX + shapeWidth - min)
+          controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), shapeY + shapeHeight - min)
 
-          const offsetX = shape.x - shapeX
-          const offsetY = shape.y - shapeY
+          const offsetX = controlShape.x - shapeX
+          const offsetY = controlShape.y - shapeY
 
-          shape.width -= offsetX
-          shape.height -= offsetY
+          controlShape.width -= offsetX
+          controlShape.height -= offsetY
 
           return { x: offsetX, y: offsetY }
         },
@@ -112,13 +169,14 @@ function useControls(props: Props) {
       directions: ['n', 'c'],
       onDrag: useDrag(
         ({ y }) => {
-          const { y: shapeY, height: shapeHeight } = shape
+          const { y: shapeY, height: shapeHeight } = controlShape
+          const imageShape = imageShapeRef.value
 
-          shape.y = Math.min(Math.max(shape.y + y, 0), shapeY + shapeHeight - min)
+          controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), shapeY + shapeHeight - min)
 
-          const offsetY = shape.y - shapeY
+          const offsetY = controlShape.y - shapeY
 
-          shape.height -= offsetY
+          controlShape.height -= offsetY
 
           return { x: 0, y: offsetY }
         },
@@ -132,15 +190,20 @@ function useControls(props: Props) {
       directions: ['n', 'e'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { y: shapeY, width: shapeWidth, height: shapeHeight } = shape
-          shape.y = Math.min(Math.max(shape.y + y, 0), shapeY + shapeHeight - min)
+          const { y: shapeY, width: shapeWidth, height: shapeHeight } = controlShape
+          const imageShape = imageShapeRef.value
 
-          const offsetY = shape.y - shapeY
+          controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), shapeY + shapeHeight - min)
 
-          shape.width = Math.min(Math.max(shape.width + x, min), defaultShape.width - shape.x)
-          shape.height = Math.min(Math.max(shape.height - offsetY, 0), defaultShape.height - shape.y)
+          const offsetY = controlShape.y - shapeY
 
-          return { x: shape.width - shapeWidth, y: offsetY }
+          controlShape.width = Math.min(Math.max(controlShape.width + x, min), imageShape.maxWdith - controlShape.x)
+          controlShape.height = Math.min(
+            Math.max(controlShape.height - offsetY, 0),
+            imageShape.maxHeight - controlShape.y
+          )
+
+          return { x: controlShape.width - shapeWidth, y: offsetY }
         },
         {
           cursor: 'ne-resize',
@@ -152,11 +215,12 @@ function useControls(props: Props) {
       directions: ['e', 'c'],
       onDrag: useDrag(
         ({ x }) => {
-          const { width: shapeWidth } = shape
+          const { width: shapeWidth } = controlShape
+          const imageShape = imageShapeRef.value
 
-          shape.width = Math.min(Math.max(shape.width + x, min), defaultShape.width - shape.x)
+          controlShape.width = Math.min(Math.max(controlShape.width + x, min), imageShape.maxWdith - controlShape.x)
 
-          return { x: shape.width - shapeWidth, y: 0 }
+          return { x: controlShape.width - shapeWidth, y: 0 }
         },
         {
           cursor: 'e-resize',
@@ -168,11 +232,13 @@ function useControls(props: Props) {
       directions: ['s', 'e'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { width: shapeWidth, height: shapeHeight } = shape
-          shape.width = Math.min(Math.max(shape.width + x, min), defaultShape.width - shape.x)
-          shape.height = Math.min(Math.max(shape.height + y, min), defaultShape.height - shape.y)
+          const { width: shapeWidth, height: shapeHeight } = controlShape
+          const imageShape = imageShapeRef.value
 
-          return { x: shape.width - shapeWidth, y: shape.height - shapeHeight }
+          controlShape.width = Math.min(Math.max(controlShape.width + x, min), imageShape.maxWdith - controlShape.x)
+          controlShape.height = Math.min(Math.max(controlShape.height + y, min), imageShape.maxHeight - controlShape.y)
+
+          return { x: controlShape.width - shapeWidth, y: controlShape.height - shapeHeight }
         },
         {
           cursor: 'se-resize',
@@ -184,10 +250,12 @@ function useControls(props: Props) {
       directions: ['s', 'c'],
       onDrag: useDrag(
         ({ y }) => {
-          const { height: shapeHeight } = shape
-          shape.height = Math.min(Math.max(shape.height + y, min), defaultShape.height - shape.y)
+          const { height: shapeHeight } = controlShape
+          const imageShape = imageShapeRef.value
 
-          return { x: 0, y: shape.height - shapeHeight }
+          controlShape.height = Math.min(Math.max(controlShape.height + y, min), imageShape.maxHeight - controlShape.y)
+
+          return { x: 0, y: controlShape.height - shapeHeight }
         },
         {
           cursor: 's-resize',
@@ -199,15 +267,17 @@ function useControls(props: Props) {
       directions: ['s', 'w'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { x: shapeX, width: shapeWidth, height: shapeHeight } = shape
-          shape.x = Math.min(Math.max(shape.x + x, 0), shapeX + shapeWidth - min)
+          const { x: shapeX, width: shapeWidth, height: shapeHeight } = controlShape
+          const imageShape = imageShapeRef.value
 
-          const offsetX = shape.x - shapeX
+          controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), shapeX + shapeWidth - min)
 
-          shape.width = Math.min(Math.max(shape.width - offsetX, 0), defaultShape.width - shape.x)
-          shape.height = Math.min(Math.max(shape.height + y, min), defaultShape.height - shape.y)
+          const offsetX = controlShape.x - shapeX
 
-          return { x: offsetX, y: shape.height - shapeHeight }
+          controlShape.width = Math.min(Math.max(controlShape.width - offsetX, 0), imageShape.maxWdith - controlShape.x)
+          controlShape.height = Math.min(Math.max(controlShape.height + y, min), imageShape.maxHeight - controlShape.y)
+
+          return { x: offsetX, y: controlShape.height - shapeHeight }
         },
         {
           cursor: 'sw-resize',
@@ -219,12 +289,14 @@ function useControls(props: Props) {
       directions: ['w', 'c'],
       onDrag: useDrag(
         ({ x }) => {
-          const { x: shapeX, width: shapeWidth } = shape
-          shape.x = Math.min(Math.max(shape.x + x, 0), shapeX + shapeWidth - min)
+          const { x: shapeX, width: shapeWidth } = controlShape
+          const imageShape = imageShapeRef.value
 
-          const offsetX = shape.x - shapeX
+          controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), shapeX + shapeWidth - min)
 
-          shape.width = Math.min(Math.max(shape.width - offsetX, 0), defaultShape.width - shape.x)
+          const offsetX = controlShape.x - shapeX
+
+          controlShape.width = Math.min(Math.max(controlShape.width - offsetX, 0), imageShape.maxWdith - controlShape.x)
 
           return { x: offsetX, y: 0 }
         },
@@ -237,11 +309,14 @@ function useControls(props: Props) {
   ]
 
   return {
-    shape,
-    style,
+    controlShape,
+    imageStyleRef,
+    imageRawShape,
     controls,
     onContainerDrag,
     maskCanvasRef,
+    cropShapeRef,
+    imageShapeRef,
   }
 }
 
