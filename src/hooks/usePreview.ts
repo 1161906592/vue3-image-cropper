@@ -1,5 +1,6 @@
 import { computed, Ref, ref, watchEffect } from 'vue'
 import scaleCompute from '../utils/scaleCompute'
+import { Shape } from './useMask'
 
 interface Props {
   cropShapeRef: Ref<Shape>

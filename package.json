@@ -1,19 +1,19 @@
 {
-  "name": "vue3-with-zrender",
+  "name": "vue3-image-cropper",
   "version": "0.0.1",
+  "description": "一个vue3的图片裁剪组件",
+  "license": "MIT",
+  "author": "liuyang<1161906592@qq.com>",
+  "files": [
+    "lib",
+    "README.md"
+  ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build",
+    "build": "vue-tsc --noEmit && vite build && tsc --project tsconfig.build.json && rimraf lib/{hooks,utils} && rimraf *.tsbuildinfo",
     "preview": "vite preview",
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install"
-  },
-  "dependencies": {
-    "@vicons/ionicons5": "^0.12.0",
-    "axios": "^0.25.0",
-    "naive-ui": "^2.25.2",
-    "vue": "^3.2.26",
-    "vue-router": "^4.0.12"
   },
   "devDependencies": {
     "@commitlint/cli": "^16.0.1",
@@ -26,11 +26,15 @@
     "husky": "^7.0.4",
     "lint-staged": "^12.1.5",
     "prettier": "^2.5.1",
+    "rimraf": "^3.0.2",
     "sass": "^1.45.2",
     "typescript": "^4.4.4",
     "vite": "^2.7.2",
-    "vite-plugin-pages": "^0.20.1",
+    "vue": "^3.2.26",
     "vue-tsc": "^0.29.8"
+  },
+  "peerDependencies": {
+    "vue": "^3.0.0"
   },
   "lint-staged": {
     "*.{ts,tsx}": [

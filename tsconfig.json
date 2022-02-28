@@ -1,10 +1,9 @@
 {
   "compilerOptions": {
-    "baseUrl": ".",
     "sourceMap": false,
     "target": "es5",
     "useDefineForClassFields": true,
-    "module": "commonjs",
+    "module": "esnext",
     "moduleResolution": "node",
     "allowJs": false,
     "strict": true,
@@ -15,9 +14,11 @@
     "removeComments": false,
     "lib": ["esnext", "dom"],
     "types": ["node"],
-    "rootDirs": ["src"],
     "declaration": false,
-    "jsx": "preserve"
+    "jsx": "preserve",
+    "paths": {
+      "vue3-image-cropper": ["./src"]
+    }
   },
   "include": ["src/**/*.ts", "src/**/*.d.ts", "src/**/*.tsx"]
 }

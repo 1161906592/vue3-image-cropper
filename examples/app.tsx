@@ -1,30 +1,13 @@
 import { defineComponent, ref } from 'vue'
-import Element from '../../components/element'
+import ImageCropper from 'vue3-image-cropper'
 
-const home = defineComponent({
+const app = defineComponent({
   setup() {
-    // const srcRef = ref<string>()
-    // const handleChange = (e: Event) => {
-    //   const file = (e.target as HTMLInputElement).files?.[0]
-    //   if (!file) {
-    //     return
-    //   }
-    //   const fr = new FileReader()
-    //   fr.onload = (e) => {
-    //     const result = e.target?.result as string
-    //     if (!result) {
-    //       return
-    //     }
-    //     srcRef.value = result
-    //   }
-    //   fr.readAsDataURL(file)
-    // }
-
     const previewRef = ref<HTMLDivElement>()
 
     return () => (
       <div style={{ display: 'flex', justifyContent: 'center' }}>
-        <Element
+        <ImageCropper
           src="https://p9-dcd-sign.byteimg.com/tos-cn-i-0004/84e59cc74c1d44d1bcb0359826b827d5~tplv-resize:640:0.png?x-expires=1646632870&x-signature=wSglv1afZgHKK2r4%2FFD5n6dN9ac%3D"
           size={400}
           minSize={10}
@@ -50,4 +33,4 @@ const home = defineComponent({
   },
 })
 
-export default home
+export default app

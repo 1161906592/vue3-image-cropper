@@ -3,5 +3,5 @@ node_modules
 .idea
 .swc
 .mock
-dist
+lib
 *.local

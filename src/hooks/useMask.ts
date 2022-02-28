@@ -1,5 +1,12 @@
 import { computed, Ref, ref, watchEffect } from 'vue'
 
+export interface Shape {
+  x: number
+  y: number
+  width: number
+  height: number
+}
+
 interface Props {
   sizeRef: Ref<number>
   maskColorRef: Ref<string>

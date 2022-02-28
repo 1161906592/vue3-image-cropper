@@ -2,6 +2,11 @@ interface Option {
   cursor: string
 }
 
+interface Offset {
+  x: number
+  y: number
+}
+
 function useDrag(onDrag: (offset: Offset) => Offset, option: Option) {
   const { cursor } = option
   return (e: MouseEvent) => {

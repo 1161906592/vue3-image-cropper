@@ -1,11 +1,11 @@
 import { defineComponent, PropType, ref, watchEffect, withModifiers, Teleport, toRef } from 'vue'
-import useControls from '../../hooks/useControls'
-import loadImage from '../../utils/loadImage'
-import useMask from '../../hooks/useMask'
-import usePreview from '../../hooks/usePreview'
-import styles from './index.module.scss'
+import useControls from './hooks/useControls'
+import loadImage from './utils/loadImage'
+import useMask from './hooks/useMask'
+import usePreview from './hooks/usePreview'
+import styles from './styles/index.module.scss'
 
-const Element = defineComponent({
+const ImageCropper = defineComponent({
   props: {
     src: String as PropType<string>,
     size: { type: Number as PropType<number>, default: 400 },
@@ -104,4 +104,4 @@ const Element = defineComponent({
   },
 })
 
-export default Element
+export default ImageCropper

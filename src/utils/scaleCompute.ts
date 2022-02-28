@@ -1,3 +1,8 @@
+interface Sizes {
+  width: number
+  height: number
+}
+
 function scaleCompute(shape: Sizes, size: number) {
   if (shape.width > shape.height) {
     const scale = size / shape.width

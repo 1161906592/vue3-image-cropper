@@ -1,3 +1,3 @@
-# vite-vue-tsx
+# vue3-image-cropper
 
-vite+vue3+tsx的项目模板
+一个vue3的图片裁剪组件
