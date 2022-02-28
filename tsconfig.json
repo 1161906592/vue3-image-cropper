@@ -1,9 +1,9 @@
 {
   "compilerOptions": {
     "sourceMap": false,
-    "target": "es5",
+    "target": "es6",
     "useDefineForClassFields": true,
-    "module": "esnext",
+    "module": "es6",
     "moduleResolution": "node",
     "allowJs": false,
     "strict": true,

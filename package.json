@@ -4,6 +4,8 @@
   "description": "一个vue3的图片裁剪组件",
   "license": "MIT",
   "author": "liuyang<1161906592@qq.com>",
+  "main": "lib/index.cjs.js",
+  "module": "lib/index.es.js",
   "files": [
     "lib",
     "README.md"
