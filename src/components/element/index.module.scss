@@ -3,6 +3,7 @@
   display: inline-block;
   height: 600px;
   user-select: none;
+  background-color: #f2f4fa;
   > {
     img,
     canvas,
@@ -25,14 +26,16 @@
 
 .controls {
   cursor: move;
-  border: 1px solid blue;
+  border: 1px solid #000;
 }
 
 .control {
   position: absolute;
   width: 7px;
   height: 7px;
-  background: blue;
+  background: #fff;
+  border: 1px solid #000;
+  border-radius: 50%;
   &.n.c {
     left: 50%;
     transform: translateX(-50%);
@@ -75,10 +78,18 @@
   position: absolute;
   left: 0;
   top: 0;
-  background: #0005;
+  background: #00000066;
   font-size: 12px;
   white-space: nowrap;
   color: #fff;
   padding: 0 4px 2px;
   line-height: 18px;
+}
+
+.preview {
+  position: absolute;
+  left: 0;
+  top: 0;
+  width: 100%;
+  height: 100%;
 }

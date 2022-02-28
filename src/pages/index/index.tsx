@@ -3,32 +3,49 @@ import Element from '../../components/element'
 
 const home = defineComponent({
   setup() {
-    const srcRef = ref<string>()
-    const handleChange = (e: Event) => {
-      const file = (e.target as HTMLInputElement).files?.[0]
-      if (!file) {
-        return
-      }
-      const fr = new FileReader()
-      fr.onload = (e) => {
-        const result = e.target?.result as string
-        if (!result) {
-          return
-        }
-        srcRef.value = result
-      }
-      fr.readAsDataURL(file)
-    }
+    // const srcRef = ref<string>()
+    // const handleChange = (e: Event) => {
+    //   const file = (e.target as HTMLInputElement).files?.[0]
+    //   if (!file) {
+    //     return
+    //   }
+    //   const fr = new FileReader()
+    //   fr.onload = (e) => {
+    //     const result = e.target?.result as string
+    //     if (!result) {
+    //       return
+    //     }
+    //     srcRef.value = result
+    //   }
+    //   fr.readAsDataURL(file)
+    // }
+
+    const previewRef = ref<HTMLDivElement>()
+
     return () => (
-      <>
-        <input type="file" onChange={handleChange} />
+      <div style={{ display: 'flex', justifyContent: 'center' }}>
         <Element
-          src={srcRef.value}
-          length={400}
-          previewContainer={() => document.getElementById('preivew') as HTMLDivElement}
+          src="https://p9-dcd-sign.byteimg.com/tos-cn-i-0004/84e59cc74c1d44d1bcb0359826b827d5~tplv-resize:640:0.png?x-expires=1646632870&x-signature=wSglv1afZgHKK2r4%2FFD5n6dN9ac%3D"
+          size={400}
+          minSize={10}
+          previewSize={200}
+          previewTo={previewRef.value as HTMLDivElement}
+          initPadding={20}
+          // maskColor="red"
         />
-        <div id="preivew" style={{ width: '50px', height: '50px', background: '#f2f4fa' }} />
-      </>
+        <div
+          ref={previewRef}
+          style={{
+            position: 'relative',
+            width: '200px',
+            height: '200px',
+            background: '#f2f4fa',
+            marginLeft: '50px',
+            borderRadius: '50%',
+            overflow: 'hidden',
+          }}
+        />
+      </div>
     )
   },
 })

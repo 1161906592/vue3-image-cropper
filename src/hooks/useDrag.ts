@@ -1,8 +1,3 @@
-export interface Offset {
-  x: number
-  y: number
-}
-
 interface Option {
   cursor: string
 }

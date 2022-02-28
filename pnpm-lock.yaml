@@ -21,7 +21,6 @@ specifiers:
   vue: ^3.2.26
   vue-router: ^4.0.12
   vue-tsc: ^0.29.8
-  zrender: ^5.3.0
 
 dependencies:
   '@vicons/ionicons5': registry.npmmirror.com/@vicons/ionicons5/0.12.0
@@ -29,7 +28,6 @@ dependencies:
   naive-ui: registry.npmmirror.com/naive-ui/2.25.5_vue@3.2.31
   vue: registry.npmmirror.com/vue/3.2.31
   vue-router: registry.npmmirror.com/vue-router/4.0.12_vue@3.2.31
-  zrender: registry.npmmirror.com/zrender/5.3.0
 
 devDependencies:
   '@commitlint/cli': registry.npmmirror.com/@commitlint/cli/16.2.1
@@ -5131,12 +5129,6 @@ packages:
     version: 1.14.1
     dev: true
 
-  registry.npmmirror.com/tslib/2.3.0:
-    resolution: {integrity: sha512-N82ooyxVNm6h1riLCoyS9e3fuJ3AMG2zIZs2Gd1ATcSFjSA23Q0fzjjZeh0jbJvWVDZ0cJT8yaNNaaXHzueNjg==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/tslib/-/tslib-2.3.0.tgz}
-    name: tslib
-    version: 2.3.0
-    dev: false
-
   registry.npmmirror.com/tslib/2.3.1:
     resolution: {integrity: sha512-77EbyPPpMz+FRFRuAFlWMtmgUWGe9UOG2Z25NqCwiIjRhOf5iKGuzSe5P2w1laq+FkRy4p+PCuVkJSGkzTEKVw==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/tslib/-/tslib-2.3.1.tgz}
     name: tslib
@@ -5721,11 +5713,3 @@ packages:
     version: 0.1.0
     engines: {node: '>=10'}
     dev: true
-
-  registry.npmmirror.com/zrender/5.3.0:
-    resolution: {integrity: sha512-Ln2QB5uqI1ftNYMtCRxd+XDq6MOttLgam2tmhKAVA+j0ko47UT+VNlDvKTkqe4K2sJhBvB0EhYNLebqlCTjatQ==, registry: https://registry.npm.taobao.org/, tarball: https://registry.npmmirror.com/zrender/-/zrender-5.3.0.tgz}
-    name: zrender
-    version: 5.3.0
-    dependencies:
-      tslib: registry.npmmirror.com/tslib/2.3.0
-    dev: false

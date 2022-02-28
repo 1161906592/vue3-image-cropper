@@ -1,4 +1,5 @@
-import { computed, nextTick, onMounted, reactive, ref, StyleValue, watch, watchEffect } from 'vue'
+import { computed, reactive, Ref, watchEffect } from 'vue'
+import scaleCompute from '../utils/scaleCompute'
 import useDrag from './useDrag'
 
 type Direction = 'n' | 'e' | 's' | 'w' | 'c'
@@ -9,61 +10,24 @@ interface Control {
   cursor: string
 }
 
-interface Shape {
-  width: number
-  height: number
-}
-
 interface Props {
-  length: number
-}
-
-const min = 20
-const initPadding = 0
-
-export function scaleCompute(shape: Shape, length: number) {
-  if (shape.width > shape.height) {
-    const scale = length / shape.width
-    const height = ~~(shape.height * scale)
-    const y = (length - height) / 2
-    return {
-      x: 0,
-      y,
-      width: length,
-      height,
-      maxWdith: length,
-      maxHeight: y + height,
-      scale,
-    }
-  }
-  const scale = length / shape.height
-  const width = ~~(shape.width * scale)
-  const x = (length - width) / 2
-  return {
-    x,
-    y: 0,
-    width,
-    height: length,
-    maxWdith: x + width,
-    maxHeight: length,
-    scale,
-  }
+  sizeRef: Ref<number>
+  minSizeRef: Ref<number>
+  initPaddingRef: Ref<number>
+  imageSizesReactive: Sizes
 }
 
 function useControls(props: Props) {
-  const { length } = props
-  const imageRawShape = reactive<Shape>({
-    width: 0,
-    height: 0,
-  })
-  const controlShape = reactive({
+  const { sizeRef, minSizeRef, imageSizesReactive, initPaddingRef } = props
+
+  const controlShapeReactive = reactive({
     x: 0,
     y: 0,
     width: 0,
     height: 0,
   })
 
-  const imageShapeRef = computed(() => scaleCompute(imageRawShape, length))
+  const imageShapeRef = computed(() => scaleCompute(imageSizesReactive, sizeRef.value))
 
   const imageStyleRef = computed(() => {
     const imageShape = imageShapeRef.value
@@ -73,67 +37,37 @@ function useControls(props: Props) {
   const cropShapeRef = computed(() => {
     const imageShape = imageShapeRef.value
     return {
-      x: controlShape.x - imageShape.x,
-      y: controlShape.y - imageShape.y,
-      width: controlShape.width,
-      height: controlShape.height,
+      x: controlShapeReactive.x - imageShape.x,
+      y: controlShapeReactive.y - imageShape.y,
+      width: controlShapeReactive.width,
+      height: controlShapeReactive.height,
     }
   })
 
   watchEffect(() => {
     const imageShape = imageShapeRef.value
-    controlShape.x = imageShape.x + initPadding
-    controlShape.y = imageShape.y + initPadding
-    controlShape.width = imageShape.width - initPadding * 2
-    controlShape.height = imageShape.height - initPadding * 2
+    const initPadding = initPaddingRef.value
+    controlShapeReactive.x = imageShape.x + initPadding
+    controlShapeReactive.y = imageShape.y + initPadding
+    controlShapeReactive.width = imageShape.width - initPadding * 2
+    controlShapeReactive.height = imageShape.height - initPadding * 2
   })
-
-  const maskCanvasRef = ref<HTMLCanvasElement>()
-  const maskContextRef = ref<CanvasRenderingContext2D | null>()
-
-  const renderMask = () => {
-    const ctx = maskContextRef.value
-    if (!ctx) {
-      return
-    }
-    ctx.clearRect(0, 0, length, length)
-    ctx.fillStyle = '#0005'
-    ctx.fillRect(0, 0, length, controlShape.y)
-    ctx.fillRect(0, controlShape.y, controlShape.x, controlShape.height)
-    ctx.fillRect(
-      controlShape.x + controlShape.width,
-      controlShape.y,
-      length - controlShape.x - controlShape.width,
-      controlShape.height
-    )
-    ctx.fillRect(0, controlShape.y + controlShape.height, length, length - controlShape.y - controlShape.height)
-  }
-
-  watch(
-    maskCanvasRef,
-    (canvas) => {
-      if (!canvas) {
-        return
-      }
-      canvas.width = length
-      canvas.height = length
-      maskContextRef.value = canvas.getContext('2d')
-      nextTick(renderMask)
-    },
-    { immediate: true }
-  )
-
-  watch(controlShape, renderMask)
 
   const onContainerDrag = useDrag(
     ({ x, y }) => {
-      const { x: shapeX, y: shapeY } = controlShape
+      const { x: shapeX, y: shapeY } = controlShapeReactive
       const imageShape = imageShapeRef.value
 
-      controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), imageShape.maxWdith - controlShape.width)
-      controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), imageShape.maxHeight - controlShape.height)
+      controlShapeReactive.x = Math.min(
+        Math.max(controlShapeReactive.x + x, imageShape.x),
+        imageShape.maxWidth - controlShapeReactive.width
+      )
+      controlShapeReactive.y = Math.min(
+        Math.max(controlShapeReactive.y + y, imageShape.y),
+        imageShape.maxHeight - controlShapeReactive.height
+      )
 
-      return { x: controlShape.x - shapeX, y: controlShape.y - shapeY }
+      return { x: controlShapeReactive.x - shapeX, y: controlShapeReactive.y - shapeY }
     },
     {
       cursor: 'move',
@@ -145,17 +79,24 @@ function useControls(props: Props) {
       directions: ['n', 'w'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { x: shapeX, y: shapeY, width: shapeWidth, height: shapeHeight } = controlShape
+          const { x: shapeX, y: shapeY, width: shapeWidth, height: shapeHeight } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), shapeX + shapeWidth - min)
-          controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), shapeY + shapeHeight - min)
+          controlShapeReactive.x = Math.min(
+            Math.max(controlShapeReactive.x + x, imageShape.x),
+            shapeX + shapeWidth - minSize
+          )
+          controlShapeReactive.y = Math.min(
+            Math.max(controlShapeReactive.y + y, imageShape.y),
+            shapeY + shapeHeight - minSize
+          )
 
-          const offsetX = controlShape.x - shapeX
-          const offsetY = controlShape.y - shapeY
+          const offsetX = controlShapeReactive.x - shapeX
+          const offsetY = controlShapeReactive.y - shapeY
 
-          controlShape.width -= offsetX
-          controlShape.height -= offsetY
+          controlShapeReactive.width -= offsetX
+          controlShapeReactive.height -= offsetY
 
           return { x: offsetX, y: offsetY }
         },
@@ -169,14 +110,18 @@ function useControls(props: Props) {
       directions: ['n', 'c'],
       onDrag: useDrag(
         ({ y }) => {
-          const { y: shapeY, height: shapeHeight } = controlShape
+          const { y: shapeY, height: shapeHeight } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), shapeY + shapeHeight - min)
+          controlShapeReactive.y = Math.min(
+            Math.max(controlShapeReactive.y + y, imageShape.y),
+            shapeY + shapeHeight - minSize
+          )
 
-          const offsetY = controlShape.y - shapeY
+          const offsetY = controlShapeReactive.y - shapeY
 
-          controlShape.height -= offsetY
+          controlShapeReactive.height -= offsetY
 
           return { x: 0, y: offsetY }
         },
@@ -190,20 +135,27 @@ function useControls(props: Props) {
       directions: ['n', 'e'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { y: shapeY, width: shapeWidth, height: shapeHeight } = controlShape
+          const { y: shapeY, width: shapeWidth, height: shapeHeight } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.y = Math.min(Math.max(controlShape.y + y, imageShape.y), shapeY + shapeHeight - min)
-
-          const offsetY = controlShape.y - shapeY
-
-          controlShape.width = Math.min(Math.max(controlShape.width + x, min), imageShape.maxWdith - controlShape.x)
-          controlShape.height = Math.min(
-            Math.max(controlShape.height - offsetY, 0),
-            imageShape.maxHeight - controlShape.y
+          controlShapeReactive.y = Math.min(
+            Math.max(controlShapeReactive.y + y, imageShape.y),
+            shapeY + shapeHeight - minSize
           )
 
-          return { x: controlShape.width - shapeWidth, y: offsetY }
+          const offsetY = controlShapeReactive.y - shapeY
+
+          controlShapeReactive.width = Math.min(
+            Math.max(controlShapeReactive.width + x, minSize),
+            imageShape.maxWidth - controlShapeReactive.x
+          )
+          controlShapeReactive.height = Math.min(
+            Math.max(controlShapeReactive.height - offsetY, 0),
+            imageShape.maxHeight - controlShapeReactive.y
+          )
+
+          return { x: controlShapeReactive.width - shapeWidth, y: offsetY }
         },
         {
           cursor: 'ne-resize',
@@ -215,12 +167,16 @@ function useControls(props: Props) {
       directions: ['e', 'c'],
       onDrag: useDrag(
         ({ x }) => {
-          const { width: shapeWidth } = controlShape
+          const { width: shapeWidth } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.width = Math.min(Math.max(controlShape.width + x, min), imageShape.maxWdith - controlShape.x)
+          controlShapeReactive.width = Math.min(
+            Math.max(controlShapeReactive.width + x, minSize),
+            imageShape.maxWidth - controlShapeReactive.x
+          )
 
-          return { x: controlShape.width - shapeWidth, y: 0 }
+          return { x: controlShapeReactive.width - shapeWidth, y: 0 }
         },
         {
           cursor: 'e-resize',
@@ -232,13 +188,20 @@ function useControls(props: Props) {
       directions: ['s', 'e'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { width: shapeWidth, height: shapeHeight } = controlShape
+          const { width: shapeWidth, height: shapeHeight } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.width = Math.min(Math.max(controlShape.width + x, min), imageShape.maxWdith - controlShape.x)
-          controlShape.height = Math.min(Math.max(controlShape.height + y, min), imageShape.maxHeight - controlShape.y)
+          controlShapeReactive.width = Math.min(
+            Math.max(controlShapeReactive.width + x, minSize),
+            imageShape.maxWidth - controlShapeReactive.x
+          )
+          controlShapeReactive.height = Math.min(
+            Math.max(controlShapeReactive.height + y, minSize),
+            imageShape.maxHeight - controlShapeReactive.y
+          )
 
-          return { x: controlShape.width - shapeWidth, y: controlShape.height - shapeHeight }
+          return { x: controlShapeReactive.width - shapeWidth, y: controlShapeReactive.height - shapeHeight }
         },
         {
           cursor: 'se-resize',
@@ -250,12 +213,16 @@ function useControls(props: Props) {
       directions: ['s', 'c'],
       onDrag: useDrag(
         ({ y }) => {
-          const { height: shapeHeight } = controlShape
+          const { height: shapeHeight } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.height = Math.min(Math.max(controlShape.height + y, min), imageShape.maxHeight - controlShape.y)
+          controlShapeReactive.height = Math.min(
+            Math.max(controlShapeReactive.height + y, minSize),
+            imageShape.maxHeight - controlShapeReactive.y
+          )
 
-          return { x: 0, y: controlShape.height - shapeHeight }
+          return { x: 0, y: controlShapeReactive.height - shapeHeight }
         },
         {
           cursor: 's-resize',
@@ -267,17 +234,27 @@ function useControls(props: Props) {
       directions: ['s', 'w'],
       onDrag: useDrag(
         ({ x, y }) => {
-          const { x: shapeX, width: shapeWidth, height: shapeHeight } = controlShape
+          const { x: shapeX, width: shapeWidth, height: shapeHeight } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), shapeX + shapeWidth - min)
+          controlShapeReactive.x = Math.min(
+            Math.max(controlShapeReactive.x + x, imageShape.x),
+            shapeX + shapeWidth - minSize
+          )
 
-          const offsetX = controlShape.x - shapeX
+          const offsetX = controlShapeReactive.x - shapeX
 
-          controlShape.width = Math.min(Math.max(controlShape.width - offsetX, 0), imageShape.maxWdith - controlShape.x)
-          controlShape.height = Math.min(Math.max(controlShape.height + y, min), imageShape.maxHeight - controlShape.y)
+          controlShapeReactive.width = Math.min(
+            Math.max(controlShapeReactive.width - offsetX, 0),
+            imageShape.maxWidth - controlShapeReactive.x
+          )
+          controlShapeReactive.height = Math.min(
+            Math.max(controlShapeReactive.height + y, minSize),
+            imageShape.maxHeight - controlShapeReactive.y
+          )
 
-          return { x: offsetX, y: controlShape.height - shapeHeight }
+          return { x: offsetX, y: controlShapeReactive.height - shapeHeight }
         },
         {
           cursor: 'sw-resize',
@@ -289,14 +266,21 @@ function useControls(props: Props) {
       directions: ['w', 'c'],
       onDrag: useDrag(
         ({ x }) => {
-          const { x: shapeX, width: shapeWidth } = controlShape
+          const { x: shapeX, width: shapeWidth } = controlShapeReactive
           const imageShape = imageShapeRef.value
+          const minSize = minSizeRef.value
 
-          controlShape.x = Math.min(Math.max(controlShape.x + x, imageShape.x), shapeX + shapeWidth - min)
+          controlShapeReactive.x = Math.min(
+            Math.max(controlShapeReactive.x + x, imageShape.x),
+            shapeX + shapeWidth - minSize
+          )
 
-          const offsetX = controlShape.x - shapeX
+          const offsetX = controlShapeReactive.x - shapeX
 
-          controlShape.width = Math.min(Math.max(controlShape.width - offsetX, 0), imageShape.maxWdith - controlShape.x)
+          controlShapeReactive.width = Math.min(
+            Math.max(controlShapeReactive.width - offsetX, 0),
+            imageShape.maxWidth - controlShapeReactive.x
+          )
 
           return { x: offsetX, y: 0 }
         },
@@ -309,12 +293,10 @@ function useControls(props: Props) {
   ]
 
   return {
-    controlShape,
+    controlShapeReactive,
     imageStyleRef,
-    imageRawShape,
     controls,
     onContainerDrag,
-    maskCanvasRef,
     cropShapeRef,
     imageShapeRef,
   }
