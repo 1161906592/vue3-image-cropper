@@ -37,7 +37,7 @@ function useMask(props: Props) {
     )
   })
 
-  return maskCanvasRef
+  return { maskCanvasRef }
 }
 
 export default useMask

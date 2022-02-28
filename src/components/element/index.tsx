@@ -1,8 +1,8 @@
-import { computed, defineComponent, PropType, ref, watchEffect, withModifiers, Teleport, toRef, reactive } from 'vue'
+import { defineComponent, PropType, ref, watchEffect, withModifiers, Teleport, toRef } from 'vue'
 import useControls from '../../hooks/useControls'
-import scaleCompute from '../../utils/scaleCompute'
 import loadImage from '../../utils/loadImage'
 import useMask from '../../hooks/useMask'
+import usePreview from '../../hooks/usePreview'
 import styles from './index.module.scss'
 
 const Element = defineComponent({
@@ -22,78 +22,48 @@ const Element = defineComponent({
     const minSizeRef = toRef(props, 'minSize')
     const maskColorRef = toRef(props, 'maskColor')
     const initPaddingRef = toRef(props, 'initPadding')
-    const imageSizesReactive = reactive({
-      width: 0,
-      height: 0,
-    })
-    const { controlShapeReactive, imageStyleRef, cropShapeRef, imageShapeRef, controls, onContainerDrag } = useControls(
-      {
-        sizeRef,
-        minSizeRef,
-        imageSizesReactive,
-        initPaddingRef,
-      }
-    )
+    const previewSizeRef = toRef(props, 'previewSize')
+    const previewPixelRatioRef = toRef(props, 'previewPixelRatio')
 
-    const maskCanvasRef = useMask({
+    const imageRef = ref<HTMLImageElement>()
+
+    const { controlShapeReactive, cropShapeRef, imageScaleRef, controls, onContainerDrag } = useControls({
+      sizeRef,
+      minSizeRef,
+      initPaddingRef,
+      imageRef,
+    })
+
+    const { maskCanvasRef } = useMask({
       sizeRef,
       maskColorRef,
       controlShapeReactive,
     })
 
-    const imageRef = ref<HTMLImageElement>()
-
-    const previewCanvasRef = ref<HTMLCanvasElement>()
-
-    const previewContextRef = computed(() => previewCanvasRef.value?.getContext('2d'))
-
-    const previewShapeRef = computed(() => scaleCompute(cropShapeRef.value, props.previewSize))
-
-    watchEffect(() => {
-      const ctx = previewContextRef.value
-      const image = imageRef.value
-      if (!ctx || !image) {
-        return
-      }
-      const cropShape = cropShapeRef.value
-      const previewShape = previewShapeRef.value
-      const { scale } = imageShapeRef.value
-      const { previewSize, previewPixelRatio } = props
-      const size = previewSize * previewPixelRatio
-
-      ctx.clearRect(0, 0, size, size)
-      ctx.drawImage(
-        image,
-        cropShape.x / scale,
-        cropShape.y / scale,
-        cropShape.width / scale,
-        cropShape.height / scale,
-        previewShape.x * previewPixelRatio,
-        previewShape.y * previewPixelRatio,
-        previewShape.width * previewPixelRatio,
-        previewShape.height * previewPixelRatio
-      )
+    const { previewCanvasRef } = usePreview({
+      cropShapeRef,
+      imageScaleRef,
+      imageRef,
+      previewSizeRef,
+      previewPixelRatioRef,
     })
 
     watchEffect(async () => {
       const src = props.src
-      if (!src) {
-        return
+      if (src) {
+        imageRef.value = await loadImage(src)
       }
-      const image = await loadImage(src)
-      imageRef.value = image
-      imageSizesReactive.width = image.width
-      imageSizesReactive.height = image.height
     })
 
     return () => {
       const { size, previewPixelRatio, previewSize } = props
+      const imageShape = imageScaleRef.value
       const realPreviewSize = previewSize * previewPixelRatio
       return (
         <div class={styles.wrapper} style={{ width: `${size}px`, height: `${size}px` }} draggable={false}>
           {!!imageRef.value && (
             <>
-              <img src={props.src} style={imageStyleRef.value} />
+              <img src={props.src} style={{ width: `${imageShape.width}px`, height: `${imageShape.height}px` }} />
               <canvas width={size} height={size} class={styles.mask} ref={maskCanvasRef} />
               <div
                 class={styles.controls}
