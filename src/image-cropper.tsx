@@ -1,12 +1,26 @@
-import { h, Fragment, defineComponent, PropType, ref, watchEffect, withModifiers, Teleport, toRef } from 'vue'
+import {
+  h,
+  Fragment,
+  defineComponent,
+  PropType,
+  ref,
+  watchEffect,
+  withModifiers,
+  Teleport,
+  toRef,
+  nextTick,
+  computed,
+} from 'vue'
 import useControls from './hooks/useControls'
 import loadImage from './utils/loadImage'
 import useMask from './hooks/useMask'
 import usePreview from './hooks/usePreview'
+import fileToSrc from './utils/fileToSrc'
 
 const ImageCropper = defineComponent({
   props: {
     src: String as PropType<string>,
+    file: Object as PropType<File>,
     size: { type: Number as PropType<number>, default: 400 },
     minSize: { type: Number as PropType<number>, default: 20 },
     showSize: { type: Boolean as PropType<boolean>, default: true },
@@ -16,7 +30,7 @@ const ImageCropper = defineComponent({
     previewSize: { type: Number as PropType<number>, default: 50 },
     previewPixelRatio: { type: Number as PropType<number>, default: devicePixelRatio },
   },
-  setup(props) {
+  setup(props, { expose }) {
     const sizeRef = toRef(props, 'size')
     const minSizeRef = toRef(props, 'minSize')
     const maskColorRef = toRef(props, 'maskColor')
@@ -47,11 +61,43 @@ const ImageCropper = defineComponent({
       previewPixelRatioRef,
     })
 
+    const fileSrcRef = ref<string>()
+
     watchEffect(async () => {
-      const src = props.src
+      const { file } = props
+      if (!file) {
+        return
+      }
+      fileSrcRef.value = await fileToSrc(file)
+    })
+
+    const realSrcRef = computed(() => fileSrcRef.value || props.src)
+
+    watchEffect(async () => {
+      const src = realSrcRef.value
       if (src) {
         imageRef.value = await loadImage(src)
       }
+    })
+
+    expose({
+      exportImage() {
+        return new Promise<HTMLCanvasElement>((resolve) => {
+          if (previewCanvasRef.value) {
+            resolve(previewCanvasRef.value)
+          } else {
+            const { previewPixelRatio, previewSize } = props
+            const realPreviewSize = previewSize * previewPixelRatio
+            const canvas = document.createElement('canvas')
+            canvas.width = realPreviewSize
+            canvas.height = realPreviewSize
+            previewCanvasRef.value = canvas
+            nextTick(() => {
+              resolve(canvas)
+            })
+          }
+        })
+      },
     })
 
     return () => {
@@ -62,7 +108,10 @@ const ImageCropper = defineComponent({
         <div class="cropper-wrapper" style={{ width: `${size}px`, height: `${size}px` }} draggable={false}>
           {!!imageRef.value && (
             <>
-              <img src={props.src} style={{ width: `${imageShape.width}px`, height: `${imageShape.height}px` }} />
+              <img
+                src={realSrcRef.value}
+                style={{ width: `${imageShape.width}px`, height: `${imageShape.height}px` }}
+              />
               <canvas width={size} height={size} ref={maskCanvasRef} />
               <div
                 class="cropper-controls"
