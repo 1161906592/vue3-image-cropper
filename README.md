@@ -81,7 +81,7 @@ export default App
 | src               | string      | -                | 原始图片地址          |
 | size              | number      | 400              | 裁剪器的尺寸          |
 | minSize           | number      | 20               | 图片可被裁剪的最小尺寸     |
-| showSize          | number      | true             | 左上角显示当前裁剪区域的尺寸  |
+| showSize          | boolean     | true             | 左上角显示当前裁剪区域的尺寸  |
 | maskColor         | string      | #00000032        | 遮罩层的颜色          |
 | initPadding       | number      | 0                | 初始裁剪区域距离图片四周的距离 |
 | previewTo         | HTMLElement | -                | 预览图片的dom        |
