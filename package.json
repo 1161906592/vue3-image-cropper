@@ -2,22 +2,34 @@
   "name": "vue3-image-cropper",
   "version": "0.0.1",
   "description": "一个vue3的图片裁剪组件",
-  "license": "MIT",
   "author": "liuyang<1161906592@qq.com>",
-  "main": "lib/index.cjs.js",
-  "module": "lib/index.es.js",
+  "main": "lib/index.js",
+  "module": "es/index.js",
   "files": [
     "es",
     "lib",
+    "styles",
     "README.md"
   ],
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/1161906592/vue3-image-cropper.git"
+  },
+  "keywords": [
+    "vue3",
+    "cropper"
+  ],
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/1161906592/vue3-image-cropper/issues"
+  },
+  "homepage": "https://github.com/1161906592/vue3-image-cropper#readme",
   "scripts": {
     "dev": "vite",
     "build": "pnpm run build:cjs && pnpm run build:esm && pnpm run build:styles && rimraf *.tsbuildinfo",
-    "build:demo": "vue-tsc --noEmit && vite build",
-    "build:cjs": "tsc --project tsconfig.cjs.json",
-    "build:esm": "tsc --project tsconfig.esm.json",
-    "build:styles": "node build/style.js",
+    "build:cjs": "rimraf lib && tsc --project tsconfig.cjs.json",
+    "build:esm": "rimraf es && tsc --project tsconfig.esm.json",
+    "build:styles": "rimraf styles && node build/style.js",
     "preview": "vite preview",
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install"
