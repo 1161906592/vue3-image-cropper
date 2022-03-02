@@ -15,7 +15,7 @@ import { defineComponent, ref } from 'vue'
 import ImageCropper from 'vue3-image-cropper'
 import 'vue3-image-cropper/styles/index.css'
 
-const app = defineComponent({
+const App = defineComponent({
   setup() {
     const previewRef = ref<HTMLDivElement>()
 
@@ -47,7 +47,7 @@ const app = defineComponent({
   },
 })
 
-export default app
+export default App
 
 ```
 
