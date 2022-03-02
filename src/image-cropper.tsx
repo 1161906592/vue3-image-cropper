@@ -1,9 +1,8 @@
-import { defineComponent, PropType, ref, watchEffect, withModifiers, Teleport, toRef } from 'vue'
+import { h, Fragment, defineComponent, PropType, ref, watchEffect, withModifiers, Teleport, toRef } from 'vue'
 import useControls from './hooks/useControls'
 import loadImage from './utils/loadImage'
 import useMask from './hooks/useMask'
 import usePreview from './hooks/usePreview'
-import styles from './styles/index.module.scss'
 
 const ImageCropper = defineComponent({
   props: {
@@ -60,13 +59,13 @@ const ImageCropper = defineComponent({
       const imageShape = imageScaleRef.value
       const realPreviewSize = previewSize * previewPixelRatio
       return (
-        <div class={styles.wrapper} style={{ width: `${size}px`, height: `${size}px` }} draggable={false}>
+        <div class="cropper-wrapper" style={{ width: `${size}px`, height: `${size}px` }} draggable={false}>
           {!!imageRef.value && (
             <>
               <img src={props.src} style={{ width: `${imageShape.width}px`, height: `${imageShape.height}px` }} />
-              <canvas width={size} height={size} class={styles.mask} ref={maskCanvasRef} />
+              <canvas width={size} height={size} ref={maskCanvasRef} />
               <div
-                class={styles.controls}
+                class="cropper-controls"
                 style={{
                   transform: `translate(${controlShapeReactive.x}px, ${controlShapeReactive.y}px)`,
                   width: `${controlShapeReactive.width}px`,
@@ -76,7 +75,7 @@ const ImageCropper = defineComponent({
               >
                 {!!props.showSize && (
                   <div
-                    class={styles.size}
+                    class="cropper-size"
                     style={{ transform: `translateY(${controlShapeReactive.y > 22 ? '-100%' : 0})` }}
                   >
                     {controlShapeReactive.width} x {controlShapeReactive.height}
@@ -85,7 +84,7 @@ const ImageCropper = defineComponent({
                 {controls.map((item) => (
                   <div
                     key={item.directions.join('')}
-                    class={[...item.directions.map((d) => styles[d]), styles.control]}
+                    class={[...item.directions, 'cropper-control']}
                     onMousedown={withModifiers(item.onDrag, ['stop'])}
                     style={{ cursor: item.cursor }}
                   />
@@ -95,7 +94,7 @@ const ImageCropper = defineComponent({
           )}
           {!!props.previewTo && (
             <Teleport to={props.previewTo}>
-              <canvas width={realPreviewSize} height={realPreviewSize} ref={previewCanvasRef} class={styles.preview} />
+              <canvas width={realPreviewSize} height={realPreviewSize} ref={previewCanvasRef} class="cropper-preview" />
             </Teleport>
           )}
         </div>

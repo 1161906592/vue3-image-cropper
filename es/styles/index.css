@@ -1,80 +1,81 @@
-.wrapper {
+.cropper-wrapper {
   position: relative;
   display: inline-block;
   height: 600px;
   user-select: none;
   background-color: #f2f4fa;
-  > {
-    img,
-    canvas,
-    div {
-      position: absolute;
-    }
-    canvas {
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-    }
-    img {
-      left: 50%;
-      top: 50%;
-      transform: translate(-50%, -50%);
-    }
-  }
 }
 
-.controls {
-  cursor: move;
-  border: 1px solid #000;
+.cropper-wrapper > * {
+    position: absolute;
 }
 
-.control {
-  position: absolute;
-  width: 7px;
-  height: 7px;
-  background: #fff;
-  border: 1px solid #000;
-  border-radius: 50%;
-  &.n.c {
+.cropper-wrapper > canvas {
+    left: 0;
+    top: 0;
+    width: 100%;
+    height: 100%;
+}
+
+.cropper-wrapper > img {
+    left: 50%;
+    top: 50%;
+    transform: translate(-50%, -50%);
+}
+
+.cropper-controls {
+    cursor: move;
+    border: 1px solid #000;
+}
+
+.cropper-control {
+    position: absolute;
+    width: 7px;
+    height: 7px;
+    background: #fff;
+    border: 1px solid #000;
+    border-radius: 50%;
+}
+
+.cropper-control.n.c {
     left: 50%;
     transform: translateX(-50%);
     top: -4px;
-  }
-  &.n.w {
+}
+.cropper-control.n.w {
     left: -4px;
     top: -4px;
-  }
-  &.e.c {
+}
+.cropper-control.e.c {
     top: 50%;
     transform: translateY(-50%);
     right: -4px;
-  }
-  &.n.e {
+}
+.cropper-control.n.e {
     right: -4px;
     top: -4px;
-  }
-  &.s.c {
+}
+
+.cropper-control.s.c {
     left: 50%;
     transform: translateX(-50%);
     bottom: -4px;
-  }
-  &.s.e {
+}
+.cropper-control.s.e {
     right: -4px;
     bottom: -4px;
-  }
-  &.w.c {
+}
+.cropper-control.w.c {
     top: 50%;
     transform: translateY(-50%);
     left: -4px;
-  }
-  &.s.w {
+}
+.cropper-control.s.w {
     left: -4px;
     bottom: -4px;
-  }
 }
 
-.size {
+.cropper-size {
   position: absolute;
   left: 0;
   top: 0;
@@ -86,7 +87,7 @@
   line-height: 18px;
 }
 
-.preview {
+.cropper-preview {
   position: absolute;
   left: 0;
   top: 0;

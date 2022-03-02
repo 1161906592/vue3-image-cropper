@@ -7,12 +7,17 @@
   "main": "lib/index.cjs.js",
   "module": "lib/index.es.js",
   "files": [
+    "es",
     "lib",
     "README.md"
   ],
   "scripts": {
     "dev": "vite",
-    "build": "vue-tsc --noEmit && vite build && tsc --project tsconfig.build.json && rimraf *.tsbuildinfo",
+    "build": "pnpm run build:cjs && pnpm run build:esm && pnpm run build:styles && rimraf *.tsbuildinfo",
+    "build:demo": "vue-tsc --noEmit && vite build",
+    "build:cjs": "tsc --project tsconfig.cjs.json",
+    "build:esm": "tsc --project tsconfig.esm.json",
+    "build:styles": "node build/style.js",
     "preview": "vite preview",
     "preinstall": "npx only-allow pnpm",
     "prepare": "husky install"

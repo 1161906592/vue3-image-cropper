@@ -4,17 +4,6 @@ import vue from '@vitejs/plugin-vue'
 import vueJSX from '@vitejs/plugin-vue-jsx'
 
 export default defineConfig({
-  build: {
-    outDir: 'lib',
-    lib: {
-      formats: ['es', 'cjs'],
-      entry: 'src/index',
-      fileName: 'index',
-    },
-    rollupOptions: {
-      external: ['vue'],
-    },
-  },
   plugins: [vue(), vueJSX()],
   css: {
     modules: {
@@ -23,7 +12,7 @@ export default defineConfig({
   },
   resolve: {
     alias: {
-      'vue3-image-cropper': path.resolve('src/index.ts'),
+      'vue3-image-cropper': path.resolve('src'),
     },
   },
 })
