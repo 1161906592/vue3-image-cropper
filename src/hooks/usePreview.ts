@@ -46,7 +46,7 @@ function usePreview(props: Props) {
     )
   })
 
-  return { previewCanvasRef }
+  return { previewCanvasRef, previewShapeRef }
 }
 
 export default usePreview

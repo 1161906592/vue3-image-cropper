@@ -53,7 +53,7 @@ const ImageCropper = defineComponent({
       controlShapeReactive,
     })
 
-    const { previewCanvasRef } = usePreview({
+    const { previewCanvasRef, previewShapeRef } = usePreview({
       cropShapeRef,
       imageScaleRef,
       imageRef,
@@ -82,21 +82,33 @@ const ImageCropper = defineComponent({
 
     expose({
       exportImage() {
-        return new Promise<HTMLCanvasElement>((resolve) => {
-          if (previewCanvasRef.value) {
-            resolve(previewCanvasRef.value)
-          } else {
-            const { previewPixelRatio, previewSize } = props
-            const realPreviewSize = previewSize * previewPixelRatio
-            const canvas = document.createElement('canvas')
-            canvas.width = realPreviewSize
-            canvas.height = realPreviewSize
-            previewCanvasRef.value = canvas
-            nextTick(() => {
-              resolve(canvas)
-            })
-          }
-        })
+        const image = imageRef.value
+        if (!image) {
+          return
+        }
+        const { previewPixelRatio } = props
+        const canvas = document.createElement('canvas')
+        const previewShape = previewShapeRef.value
+        canvas.width = previewShape.width * previewPixelRatio
+        canvas.height = previewShape.height * previewPixelRatio
+        const ctx = canvas.getContext('2d')
+        if (!ctx) {
+          return
+        }
+        const cropShape = cropShapeRef.value
+        const { scale } = imageScaleRef.value
+        ctx.drawImage(
+          image,
+          cropShape.x / scale,
+          cropShape.y / scale,
+          cropShape.width / scale,
+          cropShape.height / scale,
+          0,
+          0,
+          canvas.width,
+          canvas.height
+        )
+        return canvas
       },
     })
 

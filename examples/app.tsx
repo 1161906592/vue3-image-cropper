@@ -19,9 +19,11 @@ const App = defineComponent({
           />
           <button
             onClick={() => {
-              cropperRef.value?.exportImage().then((canvas: HTMLCanvasElement) => {
-                console.log(canvas.toDataURL())
-              })
+              const canvas = cropperRef.value?.exportImage()
+              const a = document.createElement('a')
+              a.href = canvas.toDataURL()
+              a.download = 'test.png'
+              a.click()
             }}
           >
             导出
@@ -38,6 +40,7 @@ const App = defineComponent({
             initPadding={20}
             // maskColor="red"
             ref={cropperRef}
+            previewPixelRatio={4}
           />
           <div
             ref={previewRef}
