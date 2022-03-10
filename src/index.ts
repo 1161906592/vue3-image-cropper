@@ -1,3 +1,3 @@
-import ImageCropper from './image-cropper'
+import ImageCropper from './imageCropper'
 
 export default ImageCropper
