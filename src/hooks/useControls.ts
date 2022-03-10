@@ -2,10 +2,16 @@ import { computed, reactive, Ref, watchEffect } from 'vue'
 import scaleCompute from '../utils/scaleCompute'
 import useDrag from './useDrag'
 
-type Direction = 'n' | 'e' | 's' | 'w' | 'c'
+enum DirectionEnum {
+  N = 'n',
+  E = 'e',
+  S = 's',
+  W = 'w',
+  C = 'c',
+}
 
 interface Control {
-  directions: Direction[]
+  directions: DirectionEnum[]
   onDrag: ReturnType<typeof useDrag>
   cursor: string
 }
@@ -74,7 +80,7 @@ function useControls(props: Props) {
 
   const controls: Control[] = [
     {
-      directions: ['n', 'w'],
+      directions: [DirectionEnum.N, DirectionEnum.W],
       onDrag: useDrag(
         ({ x, y }) => {
           const { x: shapeX, y: shapeY, width: shapeWidth, height: shapeHeight } = controlShapeReactive
@@ -105,7 +111,7 @@ function useControls(props: Props) {
       cursor: 'nw-resize',
     },
     {
-      directions: ['n', 'c'],
+      directions: [DirectionEnum.N, DirectionEnum.C],
       onDrag: useDrag(
         ({ y }) => {
           const { y: shapeY, height: shapeHeight } = controlShapeReactive
@@ -130,7 +136,7 @@ function useControls(props: Props) {
       cursor: 'n-resize',
     },
     {
-      directions: ['n', 'e'],
+      directions: [DirectionEnum.N, DirectionEnum.E],
       onDrag: useDrag(
         ({ x, y }) => {
           const { y: shapeY, width: shapeWidth, height: shapeHeight } = controlShapeReactive
@@ -162,7 +168,7 @@ function useControls(props: Props) {
       cursor: 'ne-resize',
     },
     {
-      directions: ['e', 'c'],
+      directions: [DirectionEnum.E, DirectionEnum.C],
       onDrag: useDrag(
         ({ x }) => {
           const { width: shapeWidth } = controlShapeReactive
@@ -183,7 +189,7 @@ function useControls(props: Props) {
       cursor: 'e-resize',
     },
     {
-      directions: ['s', 'e'],
+      directions: [DirectionEnum.S, DirectionEnum.E],
       onDrag: useDrag(
         ({ x, y }) => {
           const { width: shapeWidth, height: shapeHeight } = controlShapeReactive
@@ -208,7 +214,7 @@ function useControls(props: Props) {
       cursor: 'se-resize',
     },
     {
-      directions: ['s', 'c'],
+      directions: [DirectionEnum.S, DirectionEnum.C],
       onDrag: useDrag(
         ({ y }) => {
           const { height: shapeHeight } = controlShapeReactive
@@ -229,7 +235,7 @@ function useControls(props: Props) {
       cursor: 's-resize',
     },
     {
-      directions: ['s', 'w'],
+      directions: [DirectionEnum.S, DirectionEnum.W],
       onDrag: useDrag(
         ({ x, y }) => {
           const { x: shapeX, width: shapeWidth, height: shapeHeight } = controlShapeReactive
@@ -261,7 +267,7 @@ function useControls(props: Props) {
       cursor: 'sw-resize',
     },
     {
-      directions: ['w', 'c'],
+      directions: [DirectionEnum.W, DirectionEnum.C],
       onDrag: useDrag(
         ({ x }) => {
           const { x: shapeX, width: shapeWidth } = controlShapeReactive
